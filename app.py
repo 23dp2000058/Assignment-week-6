@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_database.sqlite3'
 db =SQLAlchemy()
 db.init_app(app)
-#app.app_context.push()
+
 api =Api(app)
  #MODELS
 class student(db.Model):
@@ -32,9 +32,9 @@ class enrollments(db.Model):
     estudent_id = db.Column(db.Integer, db.ForeignKey("student.student_id"), nullable =False )
     course_id = db.Column(db.Integer, db.ForeignKey("course.course_id"), nullable =False )   
 
-with app.app_context():
-    db.create_all()
-
+#with app.app_context():
+    #db.create_all()
+app.app_context().push()
 #Exceptions
 class founderror(HTTPException):
     def __init__(self,status_code,message=''):
@@ -92,10 +92,10 @@ class CourseAPI(Resource):
         course_description=args.get('course_description',None)
         if course_name is None:
             raise notgivenerror(status_code =400, error_code ="COURSE001", error_message ="Course Name is required")
-        if course_code is None:            
+        elif course_code is None:            
             raise notgivenerror(status_code =400, error_code ="COURSE002", error_message ="Course Code is required")
         Course= course.query.filter(course.course_code == course_code).first()
-        if Course is None:
+        else Course is None:
             Course = course(course_name=course_name,course_code=course_code,course_description=course_description)
             db.session.add(course)
             db.session.commit()
