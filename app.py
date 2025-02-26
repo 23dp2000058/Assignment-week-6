@@ -75,7 +75,37 @@ enrollment_parse.add_argument("course_id")
 
 
 #apis
+class CourseAPI(Resource):
+    @marshal_with(course_fields)
+    def get(self,course_id):
+        Course = course.query.filter(course.course_id == course_id).first()
+        if Course:
+            return Course
+        else:
+            raise founderror(status_code =404)
+        
+    @marshal_with(course_fields)    
+    def post(self):
+        args = course_parse.parse_args()
+        course_name = args.get('course_name',None)
+        course_code=args.get('course_code',None)
+        course_description=args.get('course_description',None)
+        if course_name is None:
+            raise notgivenerror(status_code =400, error_code ="COURSE001", error_message ="Course Name is required")
+        if course_code is None:            
+            raise notgivenerror(status_code =400, error_code ="COURSE002", error_message ="Course Code is required")
+        Course= course.query.filter(course.course_code == course_code).first()
+        if Course is None:
+            Course = course(course_name=course_name,course_code=course_code,course_description=course_description)
+            db.session.add(course)
+            db.session.commit()
+            return Course, 201
+        else:
+            founderror(status_code=400)
 
+
+#adding resources
+api.add_resource(CourseAPI,"/api/course/<int:course_id>")
                            
 
 
